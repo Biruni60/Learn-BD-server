@@ -97,12 +97,34 @@ async function run() {
 
 
     // classes
+//  admin
+    
+   app.get('/classes', async (req, res) => {
+   const result = await classCollection.find().toArray();
+   res.send(result);
+  }); 
+ 
+  app.put('/addclass/:id', async (req, res) => {
+    const id = req.params.id;
+    const data=req.body.item
+    console.log(id,data);
+    const filter = { _id: new ObjectId(id) };
+    const updatedDoc = {
+      $set: {
+        isPending:data
+      }
+    }   
+    const result = await classCollection.updateOne(filter, updatedDoc);
+    res.send(result);
+  })
+    
+     //Teachers
     app.post('/classes', async (req, res) => {
       const item = req.body;
       const result = await classCollection.insertOne(item);
       res.send(result);
     });
-    //Teachers
+   
     app.get('/classes/:email',async(req,res)=>{
       const email=req.params.email 
     
