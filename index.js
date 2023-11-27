@@ -31,6 +31,7 @@ async function run() {
     const userCollection=client.db("learnDB").collection("users")
     const classCollection=client.db("learnDB").collection("classes")
     const paymentCollection=client.db("learnDB").collection("enrolled")
+    const assignmentCollection=client.db("learnDB").collection("assignment")
     //user
     
     app.get('/users', async (req, res) => {
@@ -175,6 +176,12 @@ async function run() {
       const result = await classCollection.deleteOne(query);
       res.send(result);
     })
+    //assignment
+    app.post('/addassignments', async (req, res) => {
+      const item = req.body;
+      const result = await assignmentCollection.insertOne(item);
+      res.send(result);
+    });
 
     // payment
     app.post('/create-payment-intent', async (req, res) => {
