@@ -32,6 +32,8 @@ async function run() {
     const classCollection=client.db("learnDB").collection("classes")
     const paymentCollection=client.db("learnDB").collection("enrolled")
     const assignmentCollection=client.db("learnDB").collection("assignment")
+    const evaluationCollection=client.db("learnDB").collection("evaluation")
+    const submissionCollection=client.db("learnDB").collection("submission")
     //user
     
     app.get('/users', async (req, res) => {
@@ -112,6 +114,37 @@ async function run() {
     
       res.send(result);
     })
+
+    app.get("/myclass",async(req,res)=>{
+      const email = req.query.email;
+      const query = { email: email };
+      
+      const result = await paymentCollection.find(query).toArray();
+      res.send(result);
+    })
+
+
+    app.get("/myassignments",async(req,res)=>{
+      const id = req.query.id;
+      const query = { classId:id };
+      
+      const result = await assignmentCollection.find(query).toArray();
+      res.send(result);
+    })
+
+
+    app.post('/evaluation', async (req, res) => {
+      const item = req.body;
+      const result = await evaluationCollection.insertOne(item);
+      res.send(result);
+    });
+    
+    app.post('/submission', async (req, res) => {
+      const item = req.body;
+      const result = await submissionCollection.insertOne(item);
+      res.send(result);
+    });
+    
 
 //  admin
     
