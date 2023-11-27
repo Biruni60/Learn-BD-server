@@ -3,7 +3,7 @@ const cors=require("cors")
 require('dotenv').config()
 const app =express()
 const port=process.env.PORT ||5000
-
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
   
 app.use(cors());
@@ -30,7 +30,7 @@ async function run() {
 
     const userCollection=client.db("learnDB").collection("users")
     const classCollection=client.db("learnDB").collection("classes")
-
+    const paymentCollection=client.db("learnDB").collection("enrolled")
     //user
     
     app.get('/users', async (req, res) => {
@@ -97,6 +97,21 @@ async function run() {
 
 
     // classes
+    //all
+    app.get('/addedclasses', async (req, res) => {
+      const query={isPending:"accepted"}
+      const result = await classCollection.find(query).toArray();
+      res.send(result);
+     }); 
+     //student
+     app.get('/classdetail/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await classCollection.findOne(query);
+    
+      res.send(result);
+    })
+
 //  admin
     
    app.get('/classes', async (req, res) => {
@@ -104,7 +119,7 @@ async function run() {
    res.send(result);
   }); 
  
-  app.put('/addclass/:id', async (req, res) => {
+  app.put('/approveclass/:id', async (req, res) => {
     const id = req.params.id;
     const data=req.body.item
     console.log(id,data);
@@ -160,6 +175,41 @@ async function run() {
       const result = await classCollection.deleteOne(query);
       res.send(result);
     })
+
+    // payment
+    app.post('/create-payment-intent', async (req, res) => {
+      const { price } = req.body;
+      const amount = parseInt(price * 100);
+      console.log(amount, 'amount inside the intent')
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: 'usd',
+        payment_method_types: ['card']
+      });
+
+      res.send({
+        clientSecret: paymentIntent.client_secret
+      })
+    });
+    
+
+    app.get('/payments/:email', async (req, res) => {
+      const query = { email: req.params.email }
+      if (req.params.email !== req.decoded.email) {
+        return res.status(403).send({ message: 'forbidden access' });
+      }
+      const result = await paymentCollection.find(query).toArray();
+      res.send(result);
+    })
+
+    app.post('/paymentclass', async (req, res) => {
+      const payment = req.body;
+      const paymentResult = await paymentCollection.insertOne(payment);
+      res.send( paymentResult);
+    })
+
+    
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
