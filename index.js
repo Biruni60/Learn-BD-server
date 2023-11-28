@@ -138,7 +138,7 @@ async function run() {
       const result = await evaluationCollection.insertOne(item);
       res.send(result);
     });
-    
+
     app.post('/submission', async (req, res) => {
       const item = req.body;
       const result = await submissionCollection.insertOne(item);
@@ -166,7 +166,14 @@ async function run() {
     const result = await classCollection.updateOne(filter, updatedDoc);
     res.send(result);
   })
-    
+
+  app.get('/feedback/:id', async (req, res) => {
+    const id =req.params.id
+    const query={classId:id}
+    const result = await evaluationCollection.find(query).toArray();
+    res.send(result);
+   }); 
+  
      //Teachers
     app.post('/classes', async (req, res) => {
       const item = req.body;
@@ -209,7 +216,18 @@ async function run() {
       const result = await classCollection.deleteOne(query);
       res.send(result);
     })
-    //assignment
+
+    app.get('/teacher-stats/:id', async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const query = {classId:id}
+      const enrollment=await paymentCollection.find(query).toArray()
+      const assignment=await assignmentCollection.find(query).toArray()
+      const submission=await submissionCollection.find(query).toArray()
+      res.send({enrollment,assignment,submission})
+    })
+
+    //assignmentnode
     app.post('/addassignments', async (req, res) => {
       const item = req.body;
       const result = await assignmentCollection.insertOne(item);
