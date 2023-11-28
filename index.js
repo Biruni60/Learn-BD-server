@@ -34,6 +34,7 @@ async function run() {
     const assignmentCollection=client.db("learnDB").collection("assignment")
     const evaluationCollection=client.db("learnDB").collection("evaluation")
     const submissionCollection=client.db("learnDB").collection("submission")
+    const appliedCollection=client.db("learnDB").collection("applied")
     //user
     
     app.get('/users', async (req, res) => {
@@ -144,7 +145,24 @@ async function run() {
       const result = await submissionCollection.insertOne(item);
       res.send(result);
     });
+    app.post('/apply', async (req, res) => {
+      const item = req.body;
+      const result = await appliedCollection.insertOne(item);
+      res.send(result);
+    });
     
+    app.get('/apply/:email',async(req,res)=>{
+      const email=req.params.email 
+    
+        const query={email:email}
+        const options={
+          projection:{isPending:1}
+        }
+        const result=await appliedCollection.findOne(query,options)
+        res.send(result)
+      
+    })
+
 
 //  admin
     
@@ -225,6 +243,39 @@ async function run() {
       const assignment=await assignmentCollection.find(query).toArray()
       const submission=await submissionCollection.find(query).toArray()
       res.send({enrollment,assignment,submission})
+    })
+
+    //teacher request
+
+    app.get('/teacherrequest', async (req, res) => {
+      const result = await appliedCollection.find().toArray();
+      res.send(result);
+     }); 
+
+     app.put('/approveteacher/:id', async (req, res) => {
+      const id = req.params.id;
+      const data=req.body.item
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          isPending:data
+        }
+      }   
+      const result = await appliedCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    })
+
+    app.put('/users/maketeacher/:email', async (req, res) => {
+      const email = req.params.email;
+      console.log(email);
+      const filter = {email:email };
+      const updatedDoc = {
+        $set: {
+          role: 'teacher'
+        }
+      }   
+      const result = await userCollection.updateOne(filter, updatedDoc);
+      res.send(result);
     })
 
     //assignmentnode
