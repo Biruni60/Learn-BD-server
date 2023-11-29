@@ -48,6 +48,7 @@ async function run() {
       console.log(email);
       const query = { email: email };
       const user = await userCollection.findOne(query);
+      console.log(user);
       res.send(user)
     })
 
@@ -191,6 +192,10 @@ async function run() {
     const result = await evaluationCollection.find(query).toArray();
     res.send(result);
    }); 
+  app.get('/feedback', async (req, res) => {
+    const result = await evaluationCollection.find().toArray();
+    res.send(result);
+   }); 
   
      //Teachers
     app.post('/classes', async (req, res) => {
@@ -243,6 +248,13 @@ async function run() {
       const assignment=await assignmentCollection.find(query).toArray()
       const submission=await submissionCollection.find(query).toArray()
       res.send({enrollment,assignment,submission})
+    })
+    app.get('/statistics', async (req, res) => {
+      const users = await userCollection.estimatedDocumentCount();
+      const classes = await classCollection.estimatedDocumentCount();
+      const enrollments = await paymentCollection.estimatedDocumentCount();
+      console.log(users,classes,enrollments);
+      res.send({users,classes,enrollments})
     })
 
     //teacher request
